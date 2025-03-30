@@ -63,7 +63,7 @@ def run_experiment(model_type: str,
             optimizer=optimizer, 
             device=device, 
             use_comet_ml=use_comet, 
-            comet_project_name="MLA_lab_es_2", 
+            comet_project_name="MLA_lab_es_1_2", 
             depth=depth
         )
 
