@@ -26,7 +26,8 @@ class Trainer:
                  device: torch.device, 
                  use_comet_ml: bool = False, 
                  comet_project_name: str = 'general', 
-                 comet_workspace: str = 'alessiochen'):
+                 comet_workspace: str = 'alessiochen', 
+                 depth: int = 2):
              
     
         self.model = model.to(device)
@@ -59,10 +60,10 @@ class Trainer:
                 "batch_size": train_loader.batch_size if hasattr(train_loader, 'batch_size') else "unknown",
                 "device": str(device)
             })
-            self.experiment.set_name(f"{model.__class__.__name__}_{time.strftime('%Y%m%d-%H%M%S')}")
+            self.experiment.set_name(f"{model.__class__.__name__}_{depth}_layers")
 
             # Track model params and gradients  
-            self.experiment.set_model_graph(str(model))
+            self.experiment.set_model_graph(str(model), overwrite=True)
     
     def train_epoch(self, epoch: int) -> Tuple[float, float]:
         self.model.train()
@@ -139,12 +140,15 @@ class Trainer:
                     "val_accuracy": val_acc,
                     "epoch_time": _epoch_time
                 }, step=epoch)
+
           
             print(f'Epoch {epoch}/{num_epochs}: '
                   f'Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}, '
                   f'Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}', 
                   f"Epoch time: {_epoch_time:.2f} sec")
         
+        if self.use_comet_lm: 
+            self.experiment.end()
 
     def evaluate(self) -> float:
         self.model.eval()

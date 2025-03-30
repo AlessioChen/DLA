@@ -20,7 +20,7 @@ data_manager = DataManager(
 lr = 0.001
 model = MLP(28*28, 512, 10)
 criterion = nn.CrossEntropyLoss()
-optimizer = optmin.Adam(model.parameters(), lr=lr)
+optimizer = optmin.SGD(model.parameters(), lr=lr)
 train_loader, validation_loader, test_loader = data_manager.load_data()   
 
 trainer = Trainer(
