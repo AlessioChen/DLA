@@ -3,7 +3,7 @@ import numpy as np
 import torch.nn as nn 
 import torch.optim as optmin
 
-from torch.utils.data import DataLoader, Subset, random_split
+from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, transforms
 from MLP import MLP
 from Trainer import Trainer
@@ -49,6 +49,7 @@ trainer = Trainer(
     criterion=criterion,
     optimizer=optimizer,
     device=device,
+    use_comet_ml=True
 
 )
     

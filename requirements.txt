@@ -1,0 +1,6 @@
+torch
+torchvision
+matplotlib
+numpy
+comet-ml
+python-dotenv
