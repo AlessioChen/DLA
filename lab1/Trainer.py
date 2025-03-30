@@ -132,12 +132,15 @@ class Trainer:
             self.validation_losses.append(val_loss)
             self.validation_accurracies.append(val_acc)
 
+            test_acc = self.evaluate()
+
             if self.use_comet_lm:
                 self.experiment.log_metrics({
                     "train_loss": train_loss,
                     "train_accuracy": train_acc,
                     "val_loss": val_loss,
-                    "val_accuracy": val_acc,
+                    "val_accurracy": val_acc,
+                    "test_accyracy": test_acc,
                     "epoch_time": _epoch_time
                 }, step=epoch)
 

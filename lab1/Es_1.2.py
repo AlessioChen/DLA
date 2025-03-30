@@ -109,7 +109,7 @@ plt.ylabel('Test Accuracy')
 plt.title('Test Accuracy vs. Network Depth')
 plt.legend()
 plt.grid(True)
-plt.savefig('Es2/test_accuracy_comparison.png')
+plt.savefig('figs/Es_1.2/test_accuracy_comparison.png')
 plt.close()
 
 # Plot training loss comparison
@@ -124,7 +124,7 @@ for i, depth in enumerate(depths):
     plt.legend()
     plt.grid(True)
 plt.tight_layout()
-plt.savefig('Es2/training_loss_comparison.png')
+plt.savefig('figs/Es_1.2/training_loss_comparison.png')
 plt.close()
 
 # Plot validation loss comparison
@@ -139,5 +139,5 @@ for i, depth in enumerate(depths):
     plt.legend()
     plt.grid(True)
 plt.tight_layout()
-plt.savefig('Es2/validation_loss_comparison.png')
+plt.savefig('figs/Es_1.2/validation_loss_comparison.png')
 plt.close()
