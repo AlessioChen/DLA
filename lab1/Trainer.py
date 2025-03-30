@@ -193,5 +193,4 @@ class Trainer:
         ax2.legend()
         
         plt.tight_layout()
-        
-        return fig, (ax1, ax2)
+        plt.show()
