@@ -37,4 +37,4 @@ trainer = Trainer(
     
 trainer.train(num_epochs=10)
 test_acc = trainer.evaluate()
-trainer.plot_curves()
+trainer.plot_curves()   

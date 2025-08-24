@@ -1,16 +1,18 @@
 from comet_ml import start
-from comet_ml.integration.pytorch import log_model
-import torch 
-import torch.nn as nn
+
 from torch.utils.data import DataLoader
-import torch.optim as optmin
 from typing import List, Tuple
-import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
-import time
+from tqdm import tqdm 
 
+import torch 
+import torch.nn as nn
+import torch.optim as optmin
+import matplotlib.pyplot as plt
 import os
+
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -65,15 +67,15 @@ class Trainer:
             # Track model params and gradients  
             self.experiment.set_model_graph(str(model), overwrite=True)
     
-    def train_epoch(self, epoch: int) -> Tuple[float, float]:
+    def train_epoch(self, epoch: int, num_epochcs) -> Tuple[float, float]:
         self.model.train()
         running_loss = 0 
         correct = 0 
         total = 0 
 
-        _start_time = time.time()
+        process_bar = tqdm(enumerate(self.train_loader), desc=f"[Trainining {epoch}/{num_epochcs}])")
 
-        for inputs, labels in self.train_loader: 
+        for i, (inputs, labels) in  process_bar:
             inputs, labels = inputs.to(self.device), labels.to(self.device)
 
             # zero the parameter gradients
@@ -83,6 +85,7 @@ class Trainer:
             outputs = self.model(inputs)    
             loss = self.criterion(outputs, labels)
             loss.backward()
+            
             self.optimizer.step()
 
             # prediction
@@ -91,10 +94,9 @@ class Trainer:
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
-        _epoch_time = time.time() - _start_time
         epoch_loss = running_loss / total 
         epoch_accuracy = correct / total 
-        return epoch_loss, epoch_accuracy, _epoch_time
+        return epoch_loss, epoch_accuracy
     
     def validate_epoch(self) -> Tuple[float, float]:
         self.model.eval()
@@ -103,7 +105,7 @@ class Trainer:
         val_total= 0
         
         with torch.no_grad():
-            for inputs, labels in self.validation_loader:
+            for inputs, labels in tqdm(self.validation_loader, desc="Validating"):
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 
                 outputs = self.model(inputs)
@@ -123,7 +125,7 @@ class Trainer:
         for epoch in range(1 + num_epochs):
          
             # training phase
-            train_loss, train_acc, _epoch_time = self.train_epoch(epoch)
+            train_loss, train_acc = self.train_epoch(epoch, num_epochs)
             self.train_losses.append(train_loss)
             self.train_accurracies.append(train_acc)
 
@@ -141,14 +143,13 @@ class Trainer:
                     "val_loss": val_loss,
                     "val_accurracy": val_acc,
                     "test_accyracy": test_acc,
-                    "epoch_time": _epoch_time
                 }, step=epoch)
 
           
             print(f'Epoch {epoch}/{num_epochs}: '
                   f'Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}, '
-                  f'Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}', 
-                  f"Epoch time: {_epoch_time:.2f} sec")
+                  f'Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}'
+                  )
         
         if self.use_comet_lm: 
             self.experiment.end()

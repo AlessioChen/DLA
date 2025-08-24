@@ -10,6 +10,7 @@ from Residual import RedidualMLP
 from DataManager import DataManager
 from Trainer import Trainer
 from typing import List, Dict, Any
+from CNN import CNN
 
 torch.manual_seed(42)
 np.random.seed(42)
@@ -19,20 +20,21 @@ print(f"Using device: {device}")
 
 data_manager = DataManager(
     batch_size= 64, 
-    val_split=0.2
+    val_split=0.2,
+    dataset_name="CIFAR10"
 )
 
 lr = 0.001
 train_loader, validation_loader, test_loader = data_manager.load_data()   
 
-def run_experiment(model_type: str, 
-                   depths: List[int], 
-                   input_size: int = 28*28,
-                   hidden_size: int = 512, 
-                   output_size: int = 10, 
-                   num_epochs: int = 10, 
-                   lr: float = 0.001, 
-                   use_comet: bool = False
+def run_cnn_experiment(model_type: str, 
+                    depths: List[int], 
+                    in_channles: int = 3,
+                    num_filters: int = 16, 
+                    num_classes: int = 10, 
+                    num_epochs: int = 20, 
+                    lr: float = 0.001, 
+                    use_comet: bool = False
                    ) -> List[Dict[str, Any]]:
     
 
@@ -40,14 +42,18 @@ def run_experiment(model_type: str,
 
     for depth in depths: 
         print(f"\n{'='*50}")
-        print(f"Training {model_type} with depth {depth}")
+        print(f"Training {model_type} CNN with depth {depth}")
         print(f"{'='*50}")
-
-        if model_type == "MLP":
-            model = MLP(input_size, hidden_size, output_size, depth)
-        else: 
-            model = RedidualMLP(input_size, hidden_size, output_size, num_blocks=depth - 2 )
         
+        skip = True if model_type == "ResiaulCNN" else False 
+        model = CNN(
+            in_channels=in_channles,
+            num_filters=num_filters,
+            num_blocks=depth, 
+            skip=skip,
+            num_classes=num_classes
+        )
+
         criterion = nn.CrossEntropyLoss()
         optimizer = optmin.SGD(model.parameters(), lr = lr)
 
@@ -60,7 +66,7 @@ def run_experiment(model_type: str,
             optimizer=optimizer, 
             device=device, 
             use_comet_ml=use_comet, 
-            comet_project_name="MLA_lab_es_1_2", 
+            comet_project_name="MLA_lab_es_1_3", 
             depth=depth
         )
 
@@ -84,7 +90,7 @@ def run_experiment(model_type: str,
 
     return results
 
-depths = [2, 4, 8, 16, 32]
+depths = [1, 2, 3,]
 
-mlp_results = run_experiment("MLP", depths, use_comet=True)
-res_mlp_results = run_experiment("ResidualMLP", depths, use_comet=True)
+cnn_results = run_cnn_experiment("CNN", depths, use_comet=True)
+res_cnn_results = run_cnn_experiment("ResidualCNN", depths, use_comet=True)
