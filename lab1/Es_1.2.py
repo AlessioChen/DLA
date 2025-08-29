@@ -22,16 +22,18 @@ data_manager = DataManager(
     val_split=0.2
 )
 
-lr = 0.001
+lr = 0.01
 train_loader, validation_loader, test_loader = data_manager.load_data()   
 
 def run_experiment(model_type: str, 
-                   depths: List[int], 
-                   input_size: int = 28*28,
-                   hidden_size: int = 512, 
-                   output_size: int = 10, 
-                   num_epochs: int = 10, 
-                   lr: float = 0.001, 
+                    depths: List[int], 
+                    input_size: int = 28*28,
+                    hidden_size: int = 512, 
+                    output_size: int = 10, 
+                    num_epochs: int = 10, 
+                    lr: float = 0.01, 
+                    momentum: float = 0.9, 
+                    weight_decay: float = 0.0005,
                    use_comet: bool = False
                    ) -> List[Dict[str, Any]]:
     
@@ -49,7 +51,7 @@ def run_experiment(model_type: str,
             model = RedidualMLP(input_size, hidden_size, output_size, num_blocks=depth - 2 )
         
         criterion = nn.CrossEntropyLoss()
-        optimizer = optmin.SGD(model.parameters(), lr = lr)
+        optimizer = optmin.SGD(model.parameters(), lr = lr, momentum=momentum, weight_decay=weight_decay)
 
         trainer = Trainer(
             model = model, 
@@ -72,13 +74,13 @@ def run_experiment(model_type: str,
             'depth': depth,
             'train_loss': trainer.train_losses[-1],
             'val_loss': trainer.validation_losses[-1],
-            'train_acc': trainer.train_accurracies[-1],
-            'val_acc': trainer.validation_accurracies[-1],
+            'train_acc': trainer.train_accuracies[-1],
+            'val_acc': trainer.validation_accuracies[-1],
             'test_acc': test_acc,
             'all_train_losses': trainer.train_losses,
             'all_val_losses': trainer.validation_losses,
-            'all_train_accs': trainer.train_accurracies,
-            'all_val_accs': trainer.validation_accurracies
+            'all_train_accs': trainer.train_accuracies,
+            'all_val_accs': trainer.validation_accuracies
         })
     
 

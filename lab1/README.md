@@ -1,7 +1,14 @@
-# MNIST Classification with MLPs and Residual Connections
+# LAB1: MLPs, Residual Networks, and Transfer Learning on MNIST & CIFAR
 
-This project explores training Multilayer Perceptrons (MLPs) from scratch in PyTorch to classify handwritten digits from the [MNIST dataset](https://docs.pytorch.org/vision/main/generated/torchvision.datasets.MNIST.html).
-We start with a baseline MLP (Exercise 1.1) and extend it by introducing Residual Connections (Exercise 1.2), comparing their performance across increasing network depths.
+This project explores the design, training, and evaluation of deep learning architectures specifically Multilayer Perceptrons (MLPs) and Convolutional Neural Networks (CNNs)—on image classification tasks using MNIST and CIFAR datasets. The study focuses on understanding how network depth and residual connections impact training stability and performance.
+
+Key components of the project include:
+
+- Building and training baseline MLPs on MNIST.
+- Introducing Residual MLPs to overcome vanishing gradient issues in deeper networks.
+- Comparing plain CNNs vs Residual CNNs on CIFAR-10 to analyze depth benefits in convolutional architectures.
+- Exploring transfer learning and fine-tuning of pre-trained residual CNNs for CIFAR-100, including feature extraction with classical classifiers and end-to-end fine-tuning.
+
 
 # Project Structure
 
@@ -15,7 +22,9 @@ We start with a baseline MLP (Exercise 1.1) and extend it by introducing Residua
 
 `Es_1.1.py` – Runs the baseline MLP (Exercise 1.1)
 
-`Es_1.2.py` – Runs MLP vs ResidualMLP experiments (Exercise 1.2)`
+`Es_1.2.py` – Runs MLP vs ResidualMLP experiments (Exercise 1.2)
+
+`Es_1.3.py` - Runs CNN vs ResidualCNN depth study on CIFAR-10 (Exercise 1.3)
 
 ## 1.1  Baseline MLP
 
@@ -65,7 +74,7 @@ The goal is to study whether residual connections make training deeper networks 
 | **Batch Size**    | 64                                                                            |
 | **Epochs**        | 10                                                                            |
 | **Dataset**       | MNIST (80% train, 20% validation, test split included)                        |
-| **Logging**       | [Comet ML](https://www.comet.com/alessiochen/mla-lab-es-1-2/view/new/panels)
+| **Logging**       | [Comet ML](https://www.comet.com/alessiochen/dla-lab1-es-1-2/view/new/panels)
 
 
 ### How to run 
@@ -88,4 +97,76 @@ python Es_1.2.py
 | **MLP**         | 32    | 11.45%   |
 | **ResidualMLP** | 32    | 96.733%  |
 
-From the results we can see that adding residual connections significantly improves deep MLP performance. Vanilla MLPs suffer from vanishing gradients as depth increases, causing training to fail for networks with 8+ layers. Residual connections provide shortcut paths that let gradients bypass intermediate layers, enabling effective training and high accuracy even in very deep networks.
+From the results I can see that adding residual connections significantly improves deep MLP performance. Vanilla MLPs suffer from vanishing gradients as depth increases, causing training to fail for networks with 8+ layers. Residual connections provide shortcut paths that let gradients bypass intermediate layers, enabling effective training and high accuracy even in very deep networks.
+
+## 1.3 Rinse & Repeat with CNNs (CIFAR-10)
+
+I repeat the study using Convolutional Neural Networks on CIFAR-10, verifying that deeper ≠ better for plain CNNs and that residual connections fix this.
+
+| Component        | Description                                                                  |
+| ---------------- | ---------------------------------------------------------------------------- |
+| Models           | `CNN` (plain stacked conv blocks), `ResidualCNN` (ResNet-style `BasicBlock`) |
+| Blocks Tested    | \[1, 5, 10]                                                                  |
+| Block (plain)    | (Conv3×3 → BN → ReLU) × 2, optional MaxPool between stages                   |
+| Block (residual) | torchvision-style `BasicBlock` with identity/1×1 downsample when needed      |
+| Channels         | Kept consistent across comparisons (per stage)                               |
+| Dataset          | CIFAR-10 (32×32 RGB), 80/20 train/val, test split included                   |
+| Loss             | CrossEntropyLoss                                                             |
+| Optimizer        | SGD (lr = 0.01)                                                              |
+| Batch Size       | 128                                                                          |
+| Epochs           | 20                                                                           |
+| Device           | CUDA                                                                         |
+| Logging          | [Comet ML](https://www.comet.com/alessiochen/dla-lab1-es-1-3/view/new/panels) |
+
+### How to run
+
+```
+python Es_1.3.py --model_type CNN --num_blocks 5 --epochs 20 --lr 0.01 -- --use_comet
+```
+### Results 
+
+| Model       | Blocks |   Val Acc  | Val Loss |
+| ----------- | :----: | :--------: | :------: |
+| ResidualCNN |   10   |   79.02%   |  0.6146  |
+| ResidualCNN |    5   |   77.38%  |  0.6528  |
+| ResidualCNN |    1   |   68.77%   |  0.8869  |
+| CNN (plain) |   10   |   53.93%   |  1.2873  |
+| CNN (plain) |    5   |   70.67%   |  0.8346  |
+| CNN (plain) |    1   |   66.04%   |  0.9499  |
+
+ResidualCNNs benefit from depth: 1 → 5 → 10 blocks steadily improves (68.8% → 77.4% → 79.0%).
+
+
+## Exercise 2.1: Fine-tune a Pre-trained Residual CNN on CIFAR-100
+
+This exercise investigates the use of transfer learning from a pre-trained Residual CNN (trained on CIFAR-10 in Exercise 1.3) to CIFAR-100:
+
+1. Feature Extraction + Classical Classifier: Using the pre-trained CNN as a fixed feature extractor, and training a Linear SVM on the extracted features.
+2. Fine-tuning the CNN: Adapting the pre-trained CNN to the new CIFAR-100 task by replacing the 10-class classifier with a 100-class classifier and selectively unfreezing layers.
+
+| Component                 | Description                                                            |
+| ------------------------- | ---------------------------------------------------------------------- |
+| **Pre-trained Model**     | ResidualCNN (10 residual blocks) trained on CIFAR-10                   |
+| **Feature Extraction**    | Extract features from the last layer before classifier                 |
+| **Classifier (baseline)** | Linear SVM (scikit-learn)                                              |
+| **Fine-tuning**           | Replace classifier with 100-class output, unfreeze layer2 + classifier |
+| **Loss Function**         | CrossEntropyLoss                                                       |
+| **Optimizer**             | Adam (lr = 0.01) for fine-tuning                                       |
+| **Batch Size**            | 128                                                                    |
+| **Epochs (fine-tuning)**  | 20                                                                     |
+| Logging          | [Comet ML](https://www.comet.com/alessiochen/dla-lab1-es-2-1/view/new/panels) |
+
+### How to run
+
+```
+python Es_2_1.py --mode baseline
+python Es_2_1.py --mode finetune
+
+```
+
+
+### Results
+| Approach                       | Test Accuracy |
+| ------------------------------ | -------- |
+| Linear SVM (feature extractor) | 23.25%   |
+| Fine-tuned CNN on CIFAR-100    | 42.29%   |

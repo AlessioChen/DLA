@@ -122,4 +122,14 @@ class CNN(nn.Module):
         x = self.flatten(x)
         x = self.classifier(x)
         return x 
-        
+
+class CNN_FeatureExtractor(CNN):
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.input_adpater(x)
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.avgpool(x)
+        x = self.flatten(x)
+        return x  # return features instead of passing through classifier
+    
