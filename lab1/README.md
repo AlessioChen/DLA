@@ -147,11 +147,10 @@ This exercise investigates the use of transfer learning from a pre-trained Resid
 | Component                 | Description                                                            |
 | ------------------------- | ---------------------------------------------------------------------- |
 | **Pre-trained Model**     | ResidualCNN (10 residual blocks) trained on CIFAR-10                   |
-| **Feature Extraction**    | Extract features from the last layer before classifier                 |
 | **Classifier (baseline)** | Linear SVM (scikit-learn)                                              |
-| **Fine-tuning**           | Replace classifier with 100-class output, unfreeze layer2 + classifier |
+| **Fine-tuning**           | Replace classifier with 100-class output, and trained with different freezed layers |
 | **Loss Function**         | CrossEntropyLoss                                                       |
-| **Optimizer**             | Adam (lr = 0.01) for fine-tuning                                       |
+| **Optimizer**             | Adam (lr = 0.01) or SGD(lr =0.01)                                   |
 | **Batch Size**            | 128                                                                    |
 | **Epochs (fine-tuning)**  | 20                                                                     |
 | Logging          | [Comet ML](https://www.comet.com/alessiochen/dla-lab1-es-2-1/view/new/panels) |
@@ -159,14 +158,16 @@ This exercise investigates the use of transfer learning from a pre-trained Resid
 ### How to run
 
 ```
-python Es_2_1.py --mode baseline
-python Es_2_1.py --mode finetune
+python Es_2_1.py --mode baseline 
+python3 Es_2_1.py --mode finetune --optimizer adam --freezed_layers layer1,layer2
 
 ```
 
-
 ### Results
-| Approach                       | Test Accuracy |
-| ------------------------------ | -------- |
-| Linear SVM (feature extractor) | 23.25%   |
-| Fine-tuned CNN on CIFAR-100    | 42.29%   |
+| Approach                                  | Test Accuracy |
+| ------------------------------            | -------- |
+| Linear SVM (feature extractor)            | 23.25%   |
+| Fine-tuned CNN ADAM + freezed layer1,2    | 45.64%   |
+| Fine-tuned CNN ADAM + freezed layer2      | 47.72%   |
+| Fine-tuned CNN SGD +  freezed layer1,2    | 45.18%   |
+| Fine-tuned CNN SGS +  freezed layer2      | 46.34%   |

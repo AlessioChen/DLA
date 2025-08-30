@@ -48,7 +48,7 @@ def run_baseline(train_loader, test_loader, device):
     print("Linear SVM accuracy:", accuracy_score(y_test, y_pred))
 
 
-def run_finetune(train_loader, validation_loader, test_loader, device):
+def run_finetune(train_loader, validation_loader, test_loader, device, freezed_layers, optimizer_name):
     """Fine-tuning the CNN on CIFAR-100"""
     cnn_model = CNN(
         in_channels=3, num_filters=16, num_blocks=10, skip=True, num_classes=100
@@ -56,20 +56,25 @@ def run_finetune(train_loader, validation_loader, test_loader, device):
     checkpoint = torch.load("./checkpoints/residual_cnn_checkpoint.pt", map_location=device)
     pretrained_dict = checkpoint["model_state_dict"]
     
-    # Remove classifier weights from the checkpoint
+    # Remove classifier weights from the checkpoint before loading 
     pretrained_dict = {k: v for k, v in pretrained_dict.items() if "classifier" not in k}
-    
-    # Load remaining weights
     cnn_model.load_state_dict(pretrained_dict, strict=False)
     cnn_model.to(device)
 
-    # Freeze all layers except layer2 + classifier
+    # freeze some layers 
     for name, param in cnn_model.named_parameters():
-        if "layer2" not in name and "classifier" not in name:
-            param.requires_grad = False
+        if name in freezed_layers: 
+            parse_args.requires_grad = False 
+            
+    if optimizer_name == "adam":
+        optimizer = torch.optim.Adam(cnn_model.parameters(), lr=0.01)
+    elif optimizer_name == "sgd":
+        optimizer = torch.optim.SGD( cnn_model.parameters(), lr=0.01, momentum=0.9)
+    else:
+        raise ValueError(f"Unsupported optimizer: {optimizer_name}")
+
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(cnn_model.parameters(), lr=0.01)
 
     trainer = Trainer(
         model=cnn_model,
@@ -97,6 +102,23 @@ def parse_args():
         required=True,
         help="Choose experiment: 'baseline' for feature extractor + SVM, 'finetune' for fine-tuning CNN."
     )
+    
+    parser.add_argument(
+        "--optimizer",
+        type=str,
+        default="adam",
+        choices=["sgd", "adam"],
+        required=True,
+        help="Optimizer to use for fine-tuning."
+    )
+    
+    parser.add_argument(
+        "--freezed_layers",
+        type=str, 
+        default="layer1,layer2",
+        help="Comma-separated list of layers to unfreeze (e.g., 'layer1,layer2')."
+    )
+    
     args = parser.parse_args()
     return args
 
@@ -120,7 +142,8 @@ def main():
     if args.mode == "baseline":
         run_baseline(train_loader, test_loader, device)
     elif args.mode == "finetune":
-        run_finetune(train_loader, validation_loader, test_loader, device)
+        freezed_layers = args.freezed_layers.split(",")
+        run_finetune(train_loader, validation_loader, test_loader, device, freezed_layers, args.optimizer)
 
 
 if __name__ == "__main__":
