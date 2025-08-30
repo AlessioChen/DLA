@@ -4,4 +4,8 @@ matplotlib
 numpy
 comet-ml
 python-dotenv
-sklearn
+scikit-learn
+dataset 
+transformers 
+accelerate>=0.26.0
+peft
