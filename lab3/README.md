@@ -2,7 +2,7 @@
 
 This project explores sentiment analysis using the [Cornell Rotten Tomatoes movie review dataset](https://huggingface.co/datasets/rotten_tomatoes).  
 
-## 📊 Dataset
+## Dataset
 
 - Name: Rotten Tomatoes (via HuggingFace Datasets)
 - Size: ~10,662 sentences

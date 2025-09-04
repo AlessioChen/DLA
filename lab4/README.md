@@ -83,7 +83,7 @@ The goal was to train a model on an in-distribution (ID) dataset and evaluate ho
 
 
 <table>
-  <caption> OOD dataset CIFAR-100  samples
+  <caption> OOD dataset CIFAR-100 + noise samples
   <tr>
     <td><img src="plots/objects/ood_samples_objects.png" ></td>
     <td><img src="plots/flowers/ood_samples_flowers.png" ></td>
@@ -96,16 +96,6 @@ The goal was to train a model on an in-distribution (ID) dataset and evaluate ho
   I used the maximum softmax probability as the confidence score for OOD detection
 
 
-<table>
-  <caption> Scores of base model
-  <tr>
-    <td><img src="plots/objects/scores_max_softmax_objects.png" ></td>
-    <td><img src="plots/flowers/scores_max_softmax_flowers.png" ></td>
-    <td><img src="plots/noise/scores_max_softmax_noise.png" ></td>
-  </tr>
-</table>
-
-
   ### Performance Metrics
   The separation between ID and OOD samples is quantified using:
 
@@ -113,15 +103,30 @@ The goal was to train a model on an in-distribution (ID) dataset and evaluate ho
   - **Precision-Recall** Curve – evaluates how well the model separates ID and OOD samples across different thresholds.
   - **Area Under the Curve (AUC)** – computed for both ROC and PR curves to summarize performance in a single metric.
 
+<table>
+  <caption> Performance on objects
+  <tr>
+    <td><img src="plots/objects/scores_max_softmax_objects.png" ></td>
+    <td><img src="plots/objects/roc_pr_max_softmax_compare.png" ></td>
+  </tr>
+</table>
 
 <table>
-  <caption> ROC & PR Curves
+  <caption> Performance on flowers
   <tr>
-    <td><img src="plots/objects/roc_pr_max_softmax_compare.png" ></td>
+    <td><img src="plots/flowers/scores_max_softmax_flowers.png" ></td>
     <td><img src="plots/flowers/roc_pr_max_softmax_compare.png" ></td>
+  </tr>
+</table>
+
+<table>
+  <caption> Performance on noise data
+  <tr>
+    <td><img src="plots/noise/scores_max_softmax_noise.png" ></td>
     <td><img src="plots/noise/roc_pr_max_softmax_compare.png" ></td>
   </tr>
 </table>
+
 
 
   | OOD Set | Model      | ROC AUC | PR AUC |
